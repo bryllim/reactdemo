@@ -1,6 +1,6 @@
 import Student from "./Student";
 import { useState, useEffect } from 'react';
-import { getFirestore, collection, onSnapshot, addDoc } from "firebase/firestore";
+import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from "firebase/firestore";
 import firebaseApp from "./firebaseConfig";
 
 function Home(){
@@ -25,7 +25,9 @@ function Home(){
                 const newStudentList = [];
                 
                 snapshot.forEach(student => {
-                    newStudentList.push(student.data());
+                    const tempStudent = student.data();
+                    tempStudent["student_id"] = student.id;
+                    newStudentList.push(tempStudent);
                 });
 
                 setStudentList(newStudentList);
@@ -61,12 +63,19 @@ function Home(){
                 grade: '',
             });
 
-    
-            // localStorage.setItem('studentList', JSON.stringify(studentList));
         }
 
-        
+    }
 
+    const deleteStudent = (studentID, firstname, lastname) => {
+
+       // Initialize Cloud Firestore and get a reference to the service
+       const db = getFirestore(firebaseApp);
+
+       confirm(`Are you sure you want to delete ${firstname} ${lastname}?`).then(
+            deleteDoc(doc(db, "students", studentID))
+       );
+        
     }
 
     return(
@@ -129,6 +138,8 @@ function Home(){
                         firstname={studentRecord.firstname}
                         lastname={studentRecord.lastname}
                         grade={studentRecord.grade}
+                        deleteStudent={deleteStudent}
+                        studentID={studentRecord.student_id}
                     />
                 ))
             }
