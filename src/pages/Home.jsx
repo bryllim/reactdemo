@@ -1,7 +1,7 @@
 import Student from "./Student";
 import { useState, useEffect } from 'react';
-import { initializeApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, addDoc } from "firebase/firestore";
+import firebaseApp from "./firebaseConfig";
 
 function Home(){
 
@@ -13,41 +13,22 @@ function Home(){
 
     const [studentList, setStudentList] = useState([]);
 
-    const [savedStudentList, setSavedStudentList] = useState([]);
-
     useEffect(() => {
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCY58ltu6EpqDw31z-0YhOoU4Kgt8tUrpQ",
-            authDomain: "studentrecords-efc70.firebaseapp.com",
-            projectId: "studentrecords-efc70",
-            storageBucket: "studentrecords-efc70.appspot.com",
-            messagingSenderId: "561287654338",
-            appId: "1:561287654338:web:694600eae3acec3fa2c45b",
-            measurementId: "G-R704YJPS2Q"
-          };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-
         // Initialize Cloud Firestore and get a reference to the service
-        const db = getFirestore(app);
+        const db = getFirestore(firebaseApp);
 
         try {
 
             onSnapshot( collection(db, 'students'), snapshot => {
                 
+                const newStudentList = [];
+                
                 snapshot.forEach(student => {
-                    setSavedStudentList(
-                        savedStudentList => [
-                            ...savedStudentList,
-                            student.data()
-                        ]
-                    );
+                    newStudentList.push(student.data());
                 });
 
-                setStudentList(savedStudentList);
+                setStudentList(newStudentList);
                 
             });
             
@@ -60,22 +41,8 @@ function Home(){
 
     const addStudent = () => {
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCY58ltu6EpqDw31z-0YhOoU4Kgt8tUrpQ",
-            authDomain: "studentrecords-efc70.firebaseapp.com",
-            projectId: "studentrecords-efc70",
-            storageBucket: "studentrecords-efc70.appspot.com",
-            messagingSenderId: "561287654338",
-            appId: "1:561287654338:web:694600eae3acec3fa2c45b",
-            measurementId: "G-R704YJPS2Q"
-          };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-
         // Initialize Cloud Firestore and get a reference to the service
-        const db = getFirestore(app);
+        const db = getFirestore(firebaseApp);
 
         if( student.firstname === '' || student.lastname === '' || student.grade === ''){
             alert("Missing fields!");
