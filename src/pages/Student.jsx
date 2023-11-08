@@ -1,4 +1,4 @@
-function Student({firstname, lastname, grade, deleteStudent, studentID}){
+function Student({firstname, lastname, grade, deleteStudent, updateStudent, studentID}){
     return(
         <div className="alert alert-light">
             <small></small>
@@ -6,7 +6,10 @@ function Student({firstname, lastname, grade, deleteStudent, studentID}){
             <button onClick={()=>{
                 deleteStudent(studentID, firstname, lastname)
             }} className="btn btn-danger btn-sm float-end">Delete</button>
-            <button className="btn btn-secondary btn-sm float-end me-2">Edit</button>
+            <button onClick={()=>{
+                updateStudent(studentID, firstname, lastname, grade)
+            }}
+            className="btn btn-secondary btn-sm float-end me-2">Edit</button>
         </div>
         
     )
