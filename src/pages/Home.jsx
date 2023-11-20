@@ -2,6 +2,7 @@ import Student from "./Student";
 import { useState, useEffect } from 'react';
 import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, updateDoc, doc } from "firebase/firestore";
 import firebaseApp from "./firebaseConfig";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 function Home(){
 
@@ -12,8 +13,9 @@ function Home(){
     });
 
     const [studentList, setStudentList] = useState([]);
-
+    const [authenticated, setAuthenticated] = useState(false)
     const [editToggle, setEditToggle] = useState(false);
+    const [userProperties, setUserProperties] = useState({});
 
     useEffect(() => {
 
@@ -39,6 +41,19 @@ function Home(){
         }catch(e){
             alert('Could not fetch student data!')
         }
+
+        const auth = getAuth(firebaseApp);
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+              setAuthenticated(true)
+              console.log(user.providerData);
+              setUserProperties(user);
+            } else {
+              // User is signed out
+              // ...
+            }
+          });
 
         
     }, [])
@@ -113,95 +128,105 @@ function Home(){
 
     }
 
-    return(
-        <section>
-            <h1 className="fw-bold">👨🏻‍🎓 Student Records</h1>
-            <p>This is a list of student records.</p>
-            <div className="mb-5 p-5 border">
-                <div className="row">
-                    <div className="col-md-5">
-                        <label htmlFor="firstname">First name:</label>
-                        <input id="firstname"
-                            onChange={(e)=>setStudent({
-                                ...student,
-                                firstname: e.target.value,
-                            })}
-                            value={student.firstname}
-                            className="form-control"
-                            type="text"
-                        />
+    if(authenticated){
+        return(
+            <section>
+                <h1 className="fw-bold">Hello, {userProperties.displayName}</h1>
+                <p>This is a list of student records.</p>
+                <div className="mb-5 p-5 border">
+                    <div className="row">
+                        <div className="col-md-5">
+                            <label htmlFor="firstname">First name:</label>
+                            <input id="firstname"
+                                onChange={(e)=>setStudent({
+                                    ...student,
+                                    firstname: e.target.value,
+                                })}
+                                value={student.firstname}
+                                className="form-control"
+                                type="text"
+                            />
+                        </div>
+                        <div className="col-md-5">
+                            <label htmlFor="lastname">Last name:</label>
+                            <input id="lastname"
+                                 onChange={(e)=>setStudent({
+                                    ...student,
+                                    lastname: e.target.value
+                                })}
+                                value={student.lastname}
+                                className="form-control"
+                                type="text"
+                            />
+                        </div>
+                        <div className="col-md-2">
+                            <label htmlFor="grade">Grade:</label>
+                            <input id="grade"
+                                onChange={(e)=>setStudent({
+                                    ...student,
+                                    grade: e.target.value
+                                })}
+                                value={student.grade}
+                                className="form-control"
+                                type="number"
+                            />
+                        </div>
+    
+                        {
+                            editToggle
+                            
+                            ?
+    
+                            (
+                                <div className="col-md-2">
+                                    <button onClick={()=>{handleStudentUpdate()}} className="btn btn-success mt-3">Update</button>
+                                </div>
+                            )
+    
+                            :
+    
+                            (
+                                <div className="col-md-2">
+                                    <button onClick={()=>{addStudent()}} className="btn btn-dark mt-3">Add +</button>
+                                </div>
+                            )
+    
+                        }
+    
+                        <div className="alert alert-light mt-3">
+                            <h3 className="fw-bold">{student.firstname} {student.lastname} <span className="badge bg-dark">{student.grade}</span></h3>
+                        </div>        
                     </div>
-                    <div className="col-md-5">
-                        <label htmlFor="lastname">Last name:</label>
-                        <input id="lastname"
-                             onChange={(e)=>setStudent({
-                                ...student,
-                                lastname: e.target.value
-                            })}
-                            value={student.lastname}
-                            className="form-control"
-                            type="text"
-                        />
-                    </div>
-                    <div className="col-md-2">
-                        <label htmlFor="grade">Grade:</label>
-                        <input id="grade"
-                            onChange={(e)=>setStudent({
-                                ...student,
-                                grade: e.target.value
-                            })}
-                            value={student.grade}
-                            className="form-control"
-                            type="number"
-                        />
-                    </div>
-
-                    {
-                        editToggle
-                        
-                        ?
-
-                        (
-                            <div className="col-md-2">
-                                <button onClick={()=>{handleStudentUpdate()}} className="btn btn-success mt-3">Update</button>
-                            </div>
-                        )
-
-                        :
-
-                        (
-                            <div className="col-md-2">
-                                <button onClick={()=>{addStudent()}} className="btn btn-dark mt-3">Add +</button>
-                            </div>
-                        )
-
-                    }
-
-                    <div className="alert alert-light mt-3">
-                        <h3 className="fw-bold">{student.firstname} {student.lastname} <span className="badge bg-dark">{student.grade}</span></h3>
-                    </div>        
+                    <br />
                 </div>
-                <br />
-            </div>
+    
+                {
+                    studentList.map((studentRecord) => (
+                        <Student
+                            key={studentRecord.id}
+                            firstname={studentRecord.firstname}
+                            lastname={studentRecord.lastname}
+                            grade={studentRecord.grade}
+                            deleteStudent={deleteStudent}
+                            updateStudent={updateStudent}
+                            studentID={studentRecord.student_id}
+                        />
+                    ))
+                }
+    
+    
+                
+            </section>
+        )
+    }else{
+        return (
+            <section>
+                <h1>Welcome guest!</h1>
+            </section>
+        )
+    }
 
-            {
-                studentList.map((studentRecord) => (
-                    <Student
-                        key={studentRecord.id}
-                        firstname={studentRecord.firstname}
-                        lastname={studentRecord.lastname}
-                        grade={studentRecord.grade}
-                        deleteStudent={deleteStudent}
-                        updateStudent={updateStudent}
-                        studentID={studentRecord.student_id}
-                    />
-                ))
-            }
-
-
-            
-        </section>
-    )
+    
 }
 
 export default Home;
